@@ -313,10 +313,10 @@ def nodeName(xmlNode):
 	extract the nodename from a xml-node
 	namespace is stripped if necessary
 	"""
-    ndname = xmlNode.tag
-    if '}' in ndname:
-        ndname = ndname.split('}', 1)[1]
-    return ndname
+	ndname = xmlNode.tag
+	if '}' in ndname:
+		ndname = ndname.split('}', 1)[1]
+	return ndname
 
 def convert_gpx_to_fit (file_path):
 	"""
