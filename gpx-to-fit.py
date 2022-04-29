@@ -28,6 +28,8 @@ def btarr_coord(coord):
 	convert a angle given in degrees to a byte-array
 	used for latitude and logitude vales
 	"""
+	if coord < 0:
+		coord += 360
 	return btarr_number(11930465*coord, 4)
 
 def btarr_timestamp(tsec):
