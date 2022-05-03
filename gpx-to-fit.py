@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import os, sys, math, time, glob
-import xml.etree.ElementTree
+import xml.etree.ElementTree as xmlTree
 
 # try to create a fit-file from the
 # waypoints and/or routes in a gpx-file
@@ -54,20 +54,17 @@ def message_definition_id(name):
 	defn_max_no += 1
 	if name == "file_id":
 		fit_data.extend(btarr_number(defn_max_no+64, 1))
-		fit_data.extend(b'\x00\x00\x00\x00\x07')
-		fit_data.extend(b'\x03\x04\x8C\x06\x04\x86\x07\x04\x86')
-		fit_data.extend(b'\x01\x02\x84\x02\x02\x84\x05\x02\x84\x00\x01\x00')
+		fit_data.extend(b'\x00\x00\x00\x00\x07\x03\x04\x8C\x06\x04\x86\x07\x04\x86\x01\x02\x84\x02\x02\x84')
+		fit_data.extend(b'\x05\x02\x84\x00\x01\x00')
 	elif name == "location":
 		# location (waypoint) definition message
 		fit_data.extend(btarr_number(defn_max_no+64, 1))
-		fit_data.extend(b'\x00\x00\x1D\x00\x08')
-		fit_data.extend(b'\xFD\x04\x86\x00\x10\x07\x01\x04\x85\x02\x04\x85')
-		fit_data.extend(b'\xFE\x02\x84\x03\x02\x84\x04\x02\x84\x05\x02\x84')
+		fit_data.extend(b'\x00\x00\x1D\x00\x08\xFD\x04\x86\x00\x10\x07\x01\x04\x85\x02\x04\x85\xFE\x02\x84')
+		fit_data.extend(b'\x03\x02\x84\x04\x02\x84\x05\x02\x84')
 		defn_exported["location"] = defn_max_no
 	elif name == "course":
 		fit_data.extend(btarr_number(defn_max_no+64, 1))
-		fit_data.extend(b'\x00\x00\x1F\x00\x03')
-		fit_data.extend(b'\x05\x10\x07\x06\x04\x8C\x04\x01\x00')
+		fit_data.extend(b'\x00\x00\x1F\x00\x03\x05\x10\x07\x06\x04\x8C\x04\x01\x00')
 	elif name == "lap":
 		fit_data.extend(btarr_number(defn_max_no+64, 1))
 		fit_data.extend(b'\x00\x00\x13\x00\x58\xFD\x04\x86\x02\x04\x86\x03\x04\x85\x04\x04\x85\x05\x04\x85')
@@ -86,9 +83,8 @@ def message_definition_id(name):
 		fit_data.extend(b'\x6C\x02\x02\x6D\x02\x02\x7C\x01\x01')
 	elif name == "event":
 		fit_data.extend(btarr_number(defn_max_no+64, 1))
-		fit_data.extend(b'\x00\x00\x15\x00\x07')
-		fit_data.extend(b'\xFD\x04\x86\x03\x04\x86\x00\x01\x00\x01\x01\x00')
-		fit_data.extend(b'\x04\x01\x02\x13\x01\x02\x14\x01\x02')
+		fit_data.extend(b'\x00\x00\x15\x00\x07\xFD\x04\x86\x03\x04\x86\x00\x01\x00\x01\x01\x00\x04\x01\x02')
+		fit_data.extend(b'\x13\x01\x02\x14\x01\x02')
 	elif name == "record":
 		fit_data.extend(btarr_number(defn_max_no+64, 1))
 		fit_data.extend(b'\x00\x00\x14\x00\x36\xFD\x04\x86\x00\x04\x85\x01\x04\x85\x05\x04\x86\x0B\x04\x85')
@@ -102,9 +98,8 @@ def message_definition_id(name):
 		fit_data.extend(b'\x02\x5A\x01\x01\x88\x01\x02')
 	elif name == "course_point":
 		fit_data.extend(btarr_number(defn_max_no+64, 1))
-		fit_data.extend(b'\x00\x00\x20\x00\x08')
-		fit_data.extend(b'\x01\x04\x86\x02\x04\x85\x03\x04\x85\x04\x04\x86')
-		fit_data.extend(b'\x06\x10\x07\xFE\x02\x84\x05\x01\x00\x07\x21\x07')
+		fit_data.extend(b'\x00\x00\x20\x00\x08\x01\x04\x86\x02\x04\x85\x03\x04\x85\x04\x04\x86\x06\x10\x07')
+		fit_data.extend(b'\xFE\x02\x84\x05\x01\x00\x07\x21\x07')
 	else:
 		sys.exit('Fatal error: ' + name + ' is an unknown identifier')
 	defn_exported[name] = defn_max_no
@@ -167,8 +162,7 @@ def fit_file_id(file_type):
 	the type-no for route / course is:		file-type = 6
 	"""
 	fit_data.extend( message_definition_id ("file_id") )
-	fit_data.extend(b'\xC4\x07\x5D\xC9\x99\xF1\x15\x3C\xFF')
-	fit_data.extend(b'\xFF\xFF\xFF\xFF\x00\x36\x0C\xFF\xFF')
+	fit_data.extend(b'\xC4\x07\x5D\xC9\x99\xF1\x15\x3C\xFF\xFF\xFF\xFF\xFF\x00\x36\x0C\xFF\xFF')
 	fit_data.extend(btarr_number(file_type, 1))
 
 def fit_location(name, lat, lon, count):
@@ -222,26 +216,34 @@ def fit_lap(time_stamp, lat1, lon1, lat2, lon2, distance):
 	fit_data.extend(btarr_number(100 * distance, 4))
 	# 4-byte total-cycles		0xffff
 	fit_data.extend(b'\xFF\xFF\xFF\xFF')
-	fit_data.extend(b'\x01\xD9\x8D\x24\x6D\xEF\x3E\x05\xD8\xD0\x8C\x24\x32\x72\x3E\x05\xFF\xFF\xFF\xFF')
+	# following fields Unknown_27..20
+	# I guessed, this could be coordinates, due to there range in samples
+	# start point ?
+	fit_data.extend(btarr_coord(lat1))	# Unknown_27
+	fit_data.extend(btarr_coord(lon1))	# Unknown_28
+	# destination point ?
+	fit_data.extend(btarr_coord(lat2))	# Unknown_29
+	fit_data.extend(btarr_coord(lon2))	# Unknown_30
 	fit_data.extend(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
 	fit_data.extend(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
-	fit_data.extend(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x00\x00\xFF\xFF\xFF\xFF\xF4\x14')
+	fit_data.extend(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x00\x00\xFF\xFF')
+	fit_data.extend(b'\xFF\xFF\xF4\x14\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
 	fit_data.extend(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
 	fit_data.extend(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
-	fit_data.extend(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x09\x01\xFF\xFF')
-	fit_data.extend(b'\xFF\xFF\xFF\x07\xFF\xFF\xFF\xFF\x7F\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x7F')
-	fit_data.extend(b'\x7F\xFF\xFF\xFF\xFF\x7F')
+	fit_data.extend(b'\x09\x01\xFF\xFF\xFF\xFF\xFF\x07\xFF\xFF\xFF\xFF\x7F\x7F\xFF\xFF\xFF\xFF\xFF\xFF')
+	fit_data.extend(b'\xFF\xFF\xFF\x7F\x7F\xFF\xFF\xFF\xFF\x7F')
 
-def fit_event(is_start):
+def fit_event(time_stamp, is_start):
 	"""
 	create a data message for an event
 	this needs to be once at the start and the end of a route
 	"""
 	fit_data.extend( message_definition_id ("event") )
-	if (is_start):      # |<- timestamp ->|
-		fit_data.extend(b'\x99\xF1\x15\x3C\x00\x00\x00\x00\x00\x00\x00\xFF\xFF')
+	fit_data.extend(btarr_timestamp(time_stamp))
+	if (is_start):
+		fit_data.extend(b'\x00\x00\x00\x00\x00\x00\x00\xFF\xFF')
 	else:
-		fit_data.extend(b'\x80\xF2\x15\x3C\x00\x00\x00\x00\x00\x04\x00\xFF\xFF')
+		fit_data.extend(b'\x00\x00\x00\x00\x00\x04\x00\xFF\xFF')
 
 def fit_record(time_stamp, lat, lon, distance):
 	"""
@@ -252,18 +254,18 @@ def fit_record(time_stamp, lat, lon, distance):
 	fit_data.extend(btarr_coord(lat))
 	fit_data.extend(btarr_coord(lon))
 	fit_data.extend(btarr_number(100 * distance, 4))	# distance in cm
-	fit_data.extend(b'\xFF\xFF\xFF\x7F')
+	fit_data.extend(b'\xFF\xFF\xFF\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
 	fit_data.extend(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
 	fit_data.extend(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
-	fit_data.extend(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
-	fit_data.extend(b'\xFF\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x7F\xFF')
-	fit_data.extend(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x7F\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x7F\xFF')
+	fit_data.extend(b'\xFF\xFF\xFF\xFF\xFF\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
+	fit_data.extend(b'\xFF\xFF\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x7F\x7F\xFF\xFF\xFF\xFF\xFF\xFF')
+	fit_data.extend(b'\xFF\xFF\x7F\xFF')
 
 def fit_course_point(time_stamp, name, lat, lon):
 	"""
 	create the data message for a course-point
 	a point of special interest on the course
-	I haven't implemented this yet
+	I haven't implemented this function yet
 	"""
 	fit_data.extend( message_definition_id ("course_point") )
 	fit_data.extend(btarr_timestamp(time_stamp))
@@ -271,9 +273,8 @@ def fit_course_point(time_stamp, name, lat, lon):
 	fit_data.extend(btarr_coord(lon))
 	fit_data.extend(b'\x00\x00\x00\x00')
 	fit_data.extend(btarr_string(name, 16))
-	fit_data.extend(b'\xFF\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
-	fit_data.extend(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
-	fit_data.extend(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+	fit_data.extend(b'\xFF\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+	fit_data.extend(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
 
 
 def point_distance(x1, y1, x2, y2):
@@ -331,12 +332,12 @@ def convert_gpx_to_fit (file_path):
 	waypt_coords = []
 
 	try:
-		root = xml.etree.ElementTree.parse(file_path).getroot()
+		root = xmlTree.parse(file_path).getroot()
 	except Exception:
 		print(" ... upps: '" + filename + "' doesn't seem to be a valid gpx-file.", file=sys.stderr)
 		return
 
-	print (">-> converting", file_path)
+	print (" >> processing", file_path)
 
 	for child in root:
 		if nodeName(child) == "rte":
@@ -357,14 +358,18 @@ def convert_gpx_to_fit (file_path):
 				fit_lap(g_timestamp, route_coords[0] ["lat"], route_coords[0] ["lon"],
 									 route_coords[-1]["lat"], route_coords[-1]["lon"],
 									 route_coords[-1]["dist"])
-				fit_event(True)
+				fit_event(g_timestamp, True)
 				for coord in route_coords:
-					fit_record(g_timestamp, coord["lat"], coord["lon"], coord["dist"])
-				fit_event(False)
+					fit_record(g_timestamp + coord["dist"], coord["lat"], coord["lon"], coord["dist"])
+				fit_event(g_timestamp + route_coords[-1]["dist"], False)
 				fit_completed()
 				route_no += 1
-				file_path = filename + "-rt{:02d}.fit".format(route_no)
-				print (" >> writing", file_path)
+				# file_path = filename + "-rt{:02d}.fit".format(route_no)
+				if os.path.split(filename)[0] == "":
+					file_path = route_name + "_course.fit"
+				else:
+					file_path = os.path.split(filename)[0] + os.path.sep + route_name + "_course.fit"
+				print (" .. exporting", route_name, "in", file_path)
 				fit_write2disk(file_path)
 		elif nodeName(child) == "wpt":
 			lat, lon = 0, 0
@@ -384,7 +389,7 @@ def convert_gpx_to_fit (file_path):
 			fit_location(waypt_coords[n]['name'], waypt_coords[n]['lat'], waypt_coords[n]['lon'], n)
 		fit_completed()
 		file_path = filename + "-wpts.fit"
-		print (" >> writing", file_path)
+		print (" .. exporting waypoints to", file_path)
 		fit_write2disk(file_path)
 
 
